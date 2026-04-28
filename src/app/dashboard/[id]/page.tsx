@@ -7,15 +7,17 @@ import { SalesPageToolbar } from "@/components/sales-page/SalesPageToolbar";
 import { GeneratedSalesPage } from "@/types";
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function SalesPageDetailPage({ params }: Props) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/auth/login");
 
+  const { id } = await params;
+
   const page = await prisma.salesPage.findFirst({
-    where: { id: params.id, userId: session.user.id },
+    where: { id, userId: session.user.id },
   });
 
   if (!page) notFound();
