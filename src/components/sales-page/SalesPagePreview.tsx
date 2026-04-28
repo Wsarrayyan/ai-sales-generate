@@ -1,0 +1,229 @@
+"use client";
+
+import { GeneratedSalesPage } from "@/types";
+
+interface Props {
+  content: GeneratedSalesPage;
+  productName: string;
+  template: string;
+  price: string;
+  currency: string;
+}
+
+const THEME = {
+  modern: {
+    bg: "bg-[#0a0a0f]",
+    card: "bg-[#111118] border border-[#2d2d3d]",
+    accent: "text-orange-400",
+    accentBg: "bg-orange-500",
+    accentBorder: "border-orange-500",
+    btn: "bg-orange-500 hover:bg-orange-600",
+    hero: "from-orange-500/10 to-transparent",
+  },
+  bold: {
+    bg: "bg-[#1a0505]",
+    card: "bg-[#220a0a] border border-[#3d1a1a]",
+    accent: "text-red-400",
+    accentBg: "bg-red-500",
+    accentBorder: "border-red-500",
+    btn: "bg-red-500 hover:bg-red-600",
+    hero: "from-red-500/10 to-transparent",
+  },
+  minimal: {
+    bg: "bg-white",
+    card: "bg-gray-50 border border-gray-200",
+    accent: "text-indigo-600",
+    accentBg: "bg-indigo-600",
+    accentBorder: "border-indigo-600",
+    btn: "bg-indigo-600 hover:bg-indigo-700",
+    hero: "from-indigo-100 to-white",
+    text: "text-gray-900",
+    subtext: "text-gray-500",
+  },
+  luxury: {
+    bg: "bg-[#0d0d0d]",
+    card: "bg-[#161616] border border-[#2a2a1a]",
+    accent: "text-yellow-400",
+    accentBg: "bg-yellow-500",
+    accentBorder: "border-yellow-500",
+    btn: "bg-yellow-500 hover:bg-yellow-600 text-black",
+    hero: "from-yellow-500/10 to-transparent",
+  },
+};
+
+export function SalesPagePreview({ content, productName, template, price, currency }: Props) {
+  const t = THEME[template as keyof typeof THEME] || THEME.modern;
+  const textColor = (t as any).text || "text-white";
+  const subtext = (t as any).subtext || "text-white/60";
+
+  return (
+    <div className={`${t.bg} ${textColor} font-body min-h-screen`}>
+      {/* Hero */}
+      <section className={`relative py-20 px-6 text-center bg-gradient-to-b ${t.hero}`}>
+        <div className="max-w-4xl mx-auto">
+          <div className={`inline-block text-xs font-bold uppercase tracking-widest mb-4 px-3 py-1 rounded-full border ${t.accentBorder} ${t.accent}`}>
+            {productName}
+          </div>
+          <h1 className="text-4xl md:text-6xl font-display font-black leading-tight mb-6">
+            {content.headline}
+          </h1>
+          <p className={`text-xl md:text-2xl ${subtext} max-w-2xl mx-auto mb-10`}>
+            {content.subHeadline}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button className={`${t.btn} text-white font-bold px-10 py-4 rounded-xl text-lg transition-colors`}>
+              {content.cta.primaryText}
+            </button>
+          </div>
+          {content.cta.urgencyText && (
+            <p className={`text-sm ${subtext} mt-4`}>{content.cta.urgencyText}</p>
+          )}
+        </div>
+      </section>
+
+      {/* Description */}
+      <section className="py-16 px-6">
+        <div className="max-w-3xl mx-auto text-center">
+          <p className={`text-lg md:text-xl ${subtext} leading-relaxed`}>
+            {content.productDescription}
+          </p>
+        </div>
+      </section>
+
+      {/* Benefits */}
+      <section className="py-16 px-6">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-display font-bold text-center mb-3">
+            Kenapa Pilih Ini?
+          </h2>
+          <p className={`text-center ${subtext} mb-12`}>Keuntungan utama yang Anda dapatkan</p>
+          <div className="grid md:grid-cols-2 gap-6">
+            {content.benefits.map((b, i) => (
+              <div key={i} className={`${t.card} rounded-2xl p-6 flex gap-4`}>
+                <div className="text-3xl flex-shrink-0">{b.icon}</div>
+                <div>
+                  <h3 className="font-bold text-lg mb-2">{b.title}</h3>
+                  <p className={`${subtext} text-sm leading-relaxed`}>{b.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="py-16 px-6">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-display font-bold text-center mb-3">
+            Fitur Lengkap
+          </h2>
+          <p className={`text-center ${subtext} mb-12`}>Semua yang Anda butuhkan, sudah tersedia</p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {content.features.map((f, i) => (
+              <div key={i} className={`${t.card} rounded-xl p-5`}>
+                <div className={`${t.accent} font-bold text-sm mb-2 flex items-center gap-2`}>
+                  <span className="text-lg">✓</span> {f.title}
+                </div>
+                <p className={`text-sm ${subtext}`}>{f.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Social Proof */}
+      <section className="py-16 px-6">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-display font-bold text-center mb-3">
+            Kata Mereka
+          </h2>
+          <p className={`text-center ${subtext} mb-12`}>Bergabung dengan pelanggan yang sudah merasakan manfaatnya</p>
+          <div className="grid md:grid-cols-3 gap-6">
+            {content.socialProof.map((s, i) => (
+              <div key={i} className={`${t.card} rounded-2xl p-6`}>
+                <div className={`${t.accent} text-xl mb-3`}>
+                  {"★".repeat(s.rating)}
+                </div>
+                <p className={`${subtext} text-sm italic mb-4 leading-relaxed`}>"{s.testimonial}"</p>
+                <div>
+                  <div className="font-semibold text-sm">{s.name}</div>
+                  <div className={`text-xs ${subtext}`}>{s.role}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section className="py-16 px-6">
+        <div className="max-w-md mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-display font-bold mb-3">
+            Investasi Anda
+          </h2>
+          <p className={`${subtext} mb-10`}>Satu kali bayar, manfaat seumur hidup</p>
+
+          <div className={`${t.card} rounded-2xl p-10 border-2 ${t.accentBorder}`}>
+            {content.pricing.originalPrice && (
+              <p className={`line-through ${subtext} text-lg mb-1`}>
+                {content.pricing.currency} {content.pricing.originalPrice}
+              </p>
+            )}
+            <div className={`text-5xl font-display font-black ${t.accent} mb-2`}>
+              {content.pricing.currency} {content.pricing.currentPrice}
+            </div>
+            <p className={`text-sm ${subtext} mb-8`}>{content.pricing.billingPeriod}</p>
+
+            <div className="space-y-3 mb-8 text-left">
+              {content.pricing.features.map((f, i) => (
+                <div key={i} className={`flex items-start gap-3 text-sm`}>
+                  <span className={`${t.accent} font-bold flex-shrink-0`}>✓</span>
+                  <span className={subtext}>{f}</span>
+                </div>
+              ))}
+            </div>
+
+            <button className={`w-full ${t.btn} text-white font-bold py-4 rounded-xl text-lg transition-colors`}>
+              {content.cta.primaryText}
+            </button>
+            <p className={`text-xs ${subtext} mt-3`}>{content.cta.secondaryText}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="py-16 px-6">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-display font-bold text-center mb-12">
+            Pertanyaan Umum
+          </h2>
+          <div className="space-y-4">
+            {content.faq.map((q, i) => (
+              <div key={i} className={`${t.card} rounded-xl p-6`}>
+                <h3 className="font-semibold mb-3">{q.question}</h3>
+                <p className={`text-sm ${subtext} leading-relaxed`}>{q.answer}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className={`py-20 px-6 bg-gradient-to-t ${t.hero}`}>
+        <div className="max-w-2xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-display font-black mb-6">
+            {content.cta.urgencyText}
+          </h2>
+          <button className={`${t.btn} text-white font-bold px-12 py-5 rounded-xl text-xl transition-colors`}>
+            {content.cta.primaryText}
+          </button>
+          <p className={`text-sm ${subtext} mt-4`}>{content.cta.secondaryText}</p>
+        </div>
+      </section>
+
+      <footer className={`py-8 text-center text-xs ${subtext} border-t border-white/5`}>
+        <p>© {new Date().getFullYear()} {productName}. Generated by SalesForge AI.</p>
+      </footer>
+    </div>
+  );
+}

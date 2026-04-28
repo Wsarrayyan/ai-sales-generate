@@ -1,0 +1,168 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { GeneratedSalesPage } from "@/types";
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const page = await prisma.salesPage.findFirst({
+      where: { id: params.id, userId: session.user.id },
+    });
+
+    if (!page) {
+      return NextResponse.json({ error: "Page not found" }, { status: 404 });
+    }
+
+    const content: GeneratedSalesPage = JSON.parse(page.generatedContent);
+
+    const html = generateStandaloneHTML(page.productName, content, page.template);
+
+    return new NextResponse(html, {
+      headers: {
+        "Content-Type": "text/html",
+        "Content-Disposition": `attachment; filename="${page.slug}.html"`,
+      },
+    });
+  } catch (error) {
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}
+
+function generateStandaloneHTML(
+  productName: string,
+  content: GeneratedSalesPage,
+  template: string
+): string {
+  const colors = {
+    modern: { primary: "#f97316", bg: "#0a0a0f", text: "#ffffff" },
+    bold: { primary: "#ef4444", bg: "#1a0a0a", text: "#ffffff" },
+    minimal: { primary: "#6366f1", bg: "#ffffff", text: "#111111" },
+    luxury: { primary: "#d4af37", bg: "#0d0d0d", text: "#f5f0e8" },
+  }[template] || { primary: "#f97316", bg: "#0a0a0f", text: "#ffffff" };
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${productName} - ${content.headline}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; background: ${colors.bg}; color: ${colors.text}; line-height: 1.6; }
+    .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+    header { padding: 80px 24px; text-align: center; }
+    h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; margin-bottom: 16px; }
+    h2 { font-size: 1.8rem; font-weight: 700; margin-bottom: 32px; }
+    .accent { color: ${colors.primary}; }
+    .subheadline { font-size: 1.25rem; opacity: 0.8; max-width: 600px; margin: 0 auto 40px; }
+    .btn { display: inline-block; background: ${colors.primary}; color: #fff; padding: 18px 48px; border-radius: 8px; font-size: 1.1rem; font-weight: 700; text-decoration: none; margin: 8px; }
+    section { padding: 60px 24px; }
+    .benefits-grid, .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; }
+    .card { border: 1px solid rgba(255,255,255,0.1); padding: 24px; border-radius: 12px; }
+    .testimonials { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+    .testimonial { background: rgba(255,255,255,0.05); padding: 24px; border-radius: 12px; border-left: 4px solid ${colors.primary}; }
+    .pricing-box { text-align: center; border: 2px solid ${colors.primary}; border-radius: 16px; padding: 48px; max-width: 480px; margin: 0 auto; }
+    .price { font-size: 3rem; font-weight: 900; color: ${colors.primary}; }
+    .faq-item { margin-bottom: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; }
+    .faq-q { font-weight: 700; margin-bottom: 8px; }
+    footer { text-align: center; padding: 40px; opacity: 0.5; font-size: 0.875rem; }
+    .stars { color: ${colors.primary}; font-size: 1.2rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>${content.headline}</h1>
+      <p class="subheadline">${content.subHeadline}</p>
+      <a href="#pricing" class="btn">${content.cta.primaryText}</a>
+    </div>
+  </header>
+
+  <section>
+    <div class="container">
+      <p style="font-size:1.15rem; opacity:0.85; max-width:700px; margin:0 auto; text-align:center">${content.productDescription}</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 style="text-align:center">Keuntungan <span class="accent">Utama</span></h2>
+      <div class="benefits-grid">
+        ${content.benefits.map(b => `
+        <div class="card">
+          <div style="font-size:2rem;margin-bottom:12px">${b.icon}</div>
+          <h3 style="margin-bottom:8px">${b.title}</h3>
+          <p style="opacity:0.75">${b.description}</p>
+        </div>`).join("")}
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 style="text-align:center">Fitur <span class="accent">Lengkap</span></h2>
+      <div class="features-grid">
+        ${content.features.map(f => `
+        <div class="card">
+          <h3 style="color:${colors.primary};margin-bottom:8px">✓ ${f.title}</h3>
+          <p style="opacity:0.75">${f.description}</p>
+        </div>`).join("")}
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 style="text-align:center">Kata <span class="accent">Mereka</span></h2>
+      <div class="testimonials">
+        ${content.socialProof.map(t => `
+        <div class="testimonial">
+          <div class="stars">${"★".repeat(t.rating)}</div>
+          <p style="margin:12px 0;font-style:italic">"${t.testimonial}"</p>
+          <strong>${t.name}</strong><br><span style="opacity:0.6;font-size:0.875rem">${t.role}</span>
+        </div>`).join("")}
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <div class="container">
+      <h2 style="text-align:center">Harga <span class="accent">Terjangkau</span></h2>
+      <div class="pricing-box">
+        ${content.pricing.originalPrice ? `<p style="text-decoration:line-through;opacity:0.5">${content.pricing.currency} ${content.pricing.originalPrice}</p>` : ""}
+        <div class="price">${content.pricing.currency} ${content.pricing.currentPrice}</div>
+        <p style="opacity:0.6;margin-bottom:24px">${content.pricing.billingPeriod}</p>
+        ${content.pricing.features.map(f => `<p style="margin:8px 0">✓ ${f}</p>`).join("")}
+        <br>
+        <a href="#" class="btn">${content.cta.primaryText}</a>
+        <p style="margin-top:16px;opacity:0.6;font-size:0.875rem">${content.cta.urgencyText}</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <h2 style="text-align:center">FAQ</h2>
+      ${content.faq.map(q => `
+      <div class="faq-item">
+        <div class="faq-q">❓ ${q.question}</div>
+        <p style="opacity:0.75">${q.answer}</p>
+      </div>`).join("")}
+    </div>
+  </section>
+
+  <footer>
+    <p>Generated by SalesForge AI • ${new Date().getFullYear()}</p>
+  </footer>
+</body>
+</html>`;
+}
