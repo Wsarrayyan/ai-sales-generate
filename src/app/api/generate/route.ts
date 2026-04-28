@@ -239,7 +239,6 @@ const LANGUAGE_TEMPLATES = {
 
 // Helper function untuk generate deskripsi fitur yang lebih spesifik (multi-language)
 function generateFeatureDescription(featureTitle: string, productName: string, targetAudience: string, language: "id" | "en" | "ms"): string {
-function generateFeatureDescription(featureTitle: string, productName: string, targetAudience: string, language: "id" | "en" | "ms"): string {
   const title = featureTitle.toLowerCase();
   
   // Templates per language
@@ -321,7 +320,7 @@ function generateMockSalesPage(input: ProductInput): GeneratedSalesPage {
       title: feature,
       description: generateFeatureDescription(feature, input.productName, input.targetAudience, lang),
     })),
-    socialProof: template.testimonials.map((t, index) => ({
+    socialProof: template.testimonials.map((t) => ({
       name: t.name,
       role: t.role,
       testimonial: typeof t.testimonial === 'function' ? t.testimonial(input.productName) : t.testimonial,
@@ -340,31 +339,6 @@ function generateMockSalesPage(input: ProductInput): GeneratedSalesPage {
       urgencyText: template.cta.urgencyText,
     },
     faq: template.faq,
-  };
-}
-    cta: {
-      primaryText: `Get ${input.productName} Now`,
-      secondaryText: "Join thousands of satisfied customers",
-      urgencyText: "Limited time offer - Act now!",
-    },
-    faq: [
-      {
-        question: "How quickly will I see results?",
-        answer: "Most customers see immediate improvements, with significant results within the first week of use.",
-      },
-      {
-        question: "Is there a money-back guarantee?",
-        answer: "Yes! We offer a 30-day money-back guarantee. If you're not satisfied, we'll refund your purchase.",
-      },
-      {
-        question: "Do I need any technical skills?",
-        answer: "Not at all! Our solution is designed to be user-friendly and accessible to everyone.",
-      },
-      {
-        question: "What kind of support do you offer?",
-        answer: "We provide priority email support and comprehensive documentation to help you succeed.",
-      },
-    ],
   };
 }
 
@@ -443,7 +417,7 @@ export async function POST(req: NextRequest) {
     // Helper functions for DRY
     async function updatePage() {
       return await prisma.salesPage.update({
-        where: { id: pageId, userId: session.user.id },
+        where: { id: pageId, userId: session!.user.id },
         data: {
           productName,
           description,
@@ -465,7 +439,7 @@ export async function POST(req: NextRequest) {
       const slug = generateSlug(productName);
       return await prisma.salesPage.create({
         data: {
-          userId: session.user.id,
+          userId: session!.user.id,
           title: generatedContent.headline,
           slug,
           productName,
