@@ -34,6 +34,7 @@ export default async function SalesPageDetailPage({ params }: Props) {
           template={page.template}
           price={page.price}
           currency={page.currency}
+          language={page.language || "id"}
         />
       </div>
     </div>

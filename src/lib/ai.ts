@@ -1,14 +1,18 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 import { ProductInput, GeneratedSalesPage } from "@/types";
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+// Initialize AI clients
+const geminiClient = process.env.GOOGLE_API_KEY 
+  ? new GoogleGenerativeAI(process.env.GOOGLE_API_KEY)
+  : null;
 
-export async function generateSalesPage(
-  input: ProductInput,
-  sectionToRegenerate?: keyof GeneratedSalesPage
-): Promise<GeneratedSalesPage> {
+const groqClient = process.env.GROQ_API_KEY
+  ? new Groq({ apiKey: process.env.GROQ_API_KEY })
+  : null;
+
+// Helper function to build the prompt
+function buildPrompt(input: ProductInput, sectionToRegenerate?: keyof GeneratedSalesPage): string {
   const sectionPrompt = sectionToRegenerate
     ? `Only regenerate the "${sectionToRegenerate}" section. Keep all other content the same.`
     : "Generate all sections.";
@@ -22,7 +26,7 @@ export async function generateSalesPage(
 
   const targetLanguage = languageNames[input.language] || languageNames.id;
 
-  const prompt = `You are an expert copywriter and marketing strategist. Create a compelling sales page for the following product/service.
+  return `You are an expert copywriter and marketing strategist. Create a compelling sales page for the following product/service.
 
 Product Information:
 - Name: ${input.productName}
@@ -118,26 +122,96 @@ General Requirements:
 - If input is in different language, translate to ${targetLanguage} while maintaining persuasive tone
 - Use culturally appropriate references and idioms for ${targetLanguage}
 - Pricing should reflect: ${input.price} ${input.currency}`;
+}
 
-  const message = await client.messages.create({
-    model: "claude-opus-4-5",
-    max_tokens: 4000,
-    messages: [{ role: "user", content: prompt }],
-  });
-
-  const textContent = message.content.find((c) => c.type === "text");
-  if (!textContent || textContent.type !== "text") {
-    throw new Error("No text response from AI");
-  }
-
+// Helper function to parse AI response
+function parseAIResponse(text: string): GeneratedSalesPage {
   // Clean response — strip any potential markdown fences
-  const cleaned = textContent.text
+  const cleaned = text
     .replace(/```json\n?/g, "")
     .replace(/```\n?/g, "")
     .trim();
 
-  const parsed: GeneratedSalesPage = JSON.parse(cleaned);
-  return parsed;
+  return JSON.parse(cleaned);
+}
+
+// Try Gemini Flash (Priority 1 - FREE 1,500/day)
+async function tryGemini(prompt: string): Promise<GeneratedSalesPage | null> {
+  if (!geminiClient) {
+    console.log("⚠️  Gemini API key not configured");
+    return null;
+  }
+
+  try {
+    console.log("🔵 Trying Gemini 2.0 Flash...");
+    const model = geminiClient.getGenerativeModel({ 
+      model: "gemini-2.0-flash-exp",
+      generationConfig: {
+        temperature: 0.9,
+        maxOutputTokens: 4000,
+      },
+    });
+
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const text = response.text();
+
+    console.log("✅ Gemini Flash succeeded!");
+    return parseAIResponse(text);
+  } catch (error: any) {
+    console.error("❌ Gemini failed:", error.message);
+    
+    // Check if it's a quota/rate limit error
+    if (error.message?.includes("quota") || 
+        error.message?.includes("rate limit") ||
+        error.message?.includes("429")) {
+      console.log("⚠️  Gemini quota exceeded, trying fallback...");
+    }
+    
+    return null;
+  }
+}
+
+// Try Groq (Priority 2 - FREE 14,400/day)
+async function tryGroq(prompt: string): Promise<GeneratedSalesPage | null> {
+  if (!groqClient) {
+    console.log("⚠️  Groq API key not configured");
+    return null;
+  }
+
+  try {
+    console.log("🟢 Trying Groq (Llama 3.3 70B)...");
+    const completion = await groqClient.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      temperature: 0.9,
+      max_tokens: 4000,
+    });
+
+    const text = completion.choices[0]?.message?.content;
+    if (!text) {
+      throw new Error("No response from Groq");
+    }
+
+    console.log("✅ Groq succeeded!");
+    return parseAIResponse(text);
+  } catch (error: any) {
+    console.error("❌ Groq failed:", error.message);
+    
+    // Check if it's a quota/rate limit error
+    if (error.message?.includes("quota") || 
+        error.message?.includes("rate limit") ||
+        error.message?.includes("429")) {
+      console.log("⚠️  Groq quota exceeded, trying fallback...");
+    }
+    
+    return null;
+  }
 }
 
 export function generateSlug(name: string): string {
@@ -150,4 +224,203 @@ export function generateSlug(name: string): string {
     "-" +
     Math.random().toString(36).slice(2, 7)
   );
+}
+
+
+// Demo Mode (Priority 3 - Fallback when all AI fails)
+function generateDemoMode(input: ProductInput): GeneratedSalesPage {
+  console.log("🟡 Using Demo Mode (Template)...");
+  
+  const lang = input.language || "id";
+  
+  // Language-specific templates
+  const templates = {
+    id: {
+      headline: (name: string) => `Transformasi Hidup Anda dengan ${name}`,
+      subHeadline: (audience: string) => `Solusi terbaik untuk ${audience} yang ingin mencapai lebih banyak`,
+      description: (name: string, audience: string, desc: string) => 
+        `${name} dirancang khusus untuk ${audience}. ${desc}`,
+      benefits: [
+        { icon: "⚡", title: "Hasil Cepat & Instan", description: "Lihat peningkatan langsung dalam workflow dan produktivitas Anda" },
+        { icon: "🎯", title: "Target yang Presisi", description: "Jangkau target audience Anda dengan akurasi yang tepat sasaran" },
+        { icon: "💎", title: "Kualitas Premium", description: "Dibangun dengan standar tertinggi dan perhatian pada detail" },
+        { icon: "🚀", title: "Pertumbuhan Pesat", description: "Skalakan kesuksesan Anda lebih cepat dari yang Anda bayangkan" },
+      ],
+      testimonials: [
+        { name: "Sarah Wijaya", role: "Pemilik Bisnis", testimonial: (name: string) => `${name} benar-benar mengubah cara saya bekerja. Hasilnya langsung terlihat!`, rating: 5 },
+        { name: "Michael Tan", role: "Direktur Marketing", testimonial: "Investasi terbaik yang saya buat tahun ini. Sangat merekomendasikan!", rating: 5 },
+        { name: "Emma Putri", role: "Entrepreneur", testimonial: "Kualitas dan dukungannya luar biasa. Sangat worth it!", rating: 5 },
+      ],
+      pricing: ["Akses penuh ke semua fitur", "Dukungan pelanggan prioritas", "Update reguler termasuk", "Garansi uang kembali 30 hari"],
+      cta: {
+        primary: (name: string) => `Dapatkan ${name} Sekarang`,
+        secondary: "Bergabung dengan ribuan pelanggan yang puas",
+        urgency: "Penawaran terbatas - Ambil kesempatan sekarang!",
+      },
+      faq: [
+        { question: "Seberapa cepat saya akan melihat hasilnya?", answer: "Sebagian besar pelanggan melihat peningkatan langsung, dengan hasil signifikan dalam minggu pertama." },
+        { question: "Apakah ada garansi uang kembali?", answer: "Ya! Kami menawarkan garansi uang kembali 30 hari. Jika tidak puas, kami akan mengembalikan uang Anda." },
+        { question: "Apakah saya perlu skill teknis?", answer: "Tidak sama sekali! Solusi kami dirancang user-friendly dan mudah diakses oleh semua orang." },
+        { question: "Dukungan apa yang Anda tawarkan?", answer: "Kami menyediakan dukungan email prioritas dan dokumentasi lengkap untuk membantu kesuksesan Anda." },
+      ],
+    },
+    en: {
+      headline: (name: string) => `Transform Your Life with ${name}`,
+      subHeadline: (audience: string) => `The ultimate solution for ${audience} who want to achieve more`,
+      description: (name: string, audience: string, desc: string) => 
+        `${name} is designed specifically for ${audience}. ${desc}`,
+      benefits: [
+        { icon: "⚡", title: "Lightning Fast Results", description: "See immediate improvements in your workflow and productivity" },
+        { icon: "🎯", title: "Precision Targeting", description: "Reach exactly who you need to reach with laser-focused accuracy" },
+        { icon: "💎", title: "Premium Quality", description: "Built with the highest standards and attention to detail" },
+        { icon: "🚀", title: "Rapid Growth", description: "Scale your success faster than you ever thought possible" },
+      ],
+      testimonials: [
+        { name: "Sarah Johnson", role: "Business Owner", testimonial: (name: string) => `${name} completely transformed how I work. The results were immediate!`, rating: 5 },
+        { name: "Michael Chen", role: "Marketing Director", testimonial: "Best investment I've made this year. Highly recommend to anyone serious about growth.", rating: 5 },
+        { name: "Emma Williams", role: "Entrepreneur", testimonial: "The quality and support are outstanding. Worth every penny!", rating: 5 },
+      ],
+      pricing: ["Full access to all features", "Priority customer support", "Regular updates included", "30-day money-back guarantee"],
+      cta: {
+        primary: (name: string) => `Get ${name} Now`,
+        secondary: "Join thousands of satisfied customers",
+        urgency: "Limited time offer - Act now!",
+      },
+      faq: [
+        { question: "How quickly will I see results?", answer: "Most customers see immediate improvements, with significant results within the first week of use." },
+        { question: "Is there a money-back guarantee?", answer: "Yes! We offer a 30-day money-back guarantee. If you're not satisfied, we'll refund your purchase." },
+        { question: "Do I need any technical skills?", answer: "Not at all! Our solution is designed to be user-friendly and accessible to everyone." },
+        { question: "What kind of support do you offer?", answer: "We provide priority email support and comprehensive documentation to help you succeed." },
+      ],
+    },
+    ms: {
+      headline: (name: string) => `Transformasi Hidup Anda dengan ${name}`,
+      subHeadline: (audience: string) => `Penyelesaian terbaik untuk ${audience} yang ingin mencapai lebih banyak`,
+      description: (name: string, audience: string, desc: string) => 
+        `${name} direka khas untuk ${audience}. ${desc}`,
+      benefits: [
+        { icon: "⚡", title: "Hasil Pantas & Segera", description: "Lihat peningkatan segera dalam aliran kerja dan produktiviti anda" },
+        { icon: "🎯", title: "Sasaran yang Tepat", description: "Capai sasaran anda dengan ketepatan yang fokus" },
+        { icon: "💎", title: "Kualiti Premium", description: "Dibina dengan standard tertinggi dan perhatian kepada perincian" },
+        { icon: "🚀", title: "Pertumbuhan Pesat", description: "Skalakan kejayaan anda lebih pantas daripada yang anda fikirkan" },
+      ],
+      testimonials: [
+        { name: "Sarah Ahmad", role: "Pemilik Perniagaan", testimonial: (name: string) => `${name} benar-benar mengubah cara saya bekerja. Hasilnya segera!`, rating: 5 },
+        { name: "Michael Lim", role: "Pengarah Pemasaran", testimonial: "Pelaburan terbaik yang saya buat tahun ini. Sangat mengesyorkan!", rating: 5 },
+        { name: "Emma Zainal", role: "Usahawan", testimonial: "Kualiti dan sokongannya luar biasa. Sangat berbaloi!", rating: 5 },
+      ],
+      pricing: ["Akses penuh kepada semua ciri", "Sokongan pelanggan keutamaan", "Kemas kini berkala termasuk", "Jaminan wang kembali 30 hari"],
+      cta: {
+        primary: (name: string) => `Dapatkan ${name} Sekarang`,
+        secondary: "Sertai ribuan pelanggan yang berpuas hati",
+        urgency: "Tawaran terhad - Ambil peluang sekarang!",
+      },
+      faq: [
+        { question: "Berapa pantas saya akan melihat hasilnya?", answer: "Kebanyakan pelanggan melihat peningkatan segera, dengan hasil ketara dalam minggu pertama." },
+        { question: "Adakah jaminan wang kembali?", answer: "Ya! Kami menawarkan jaminan wang kembali 30 hari. Jika tidak berpuas hati, kami akan memulangkan wang anda." },
+        { question: "Adakah saya perlukan kemahiran teknikal?", answer: "Tidak langsung! Penyelesaian kami direka mesra pengguna dan mudah diakses oleh semua orang." },
+        { question: "Sokongan apa yang anda tawarkan?", answer: "Kami menyediakan sokongan e-mel keutamaan dan dokumentasi lengkap untuk membantu kejayaan anda." },
+      ],
+    },
+  };
+
+  const t = templates[lang as keyof typeof templates] || templates.id;
+
+  // Generate feature descriptions
+  const features = input.features.map((feature) => {
+    const title = feature.toLowerCase();
+    let description = "";
+
+    if (lang === "id") {
+      if (title.includes("dasar") || title.includes("basic") || title.includes("fundamental")) {
+        description = `Pelajari fondasi penting yang akan menjadi dasar kesuksesan Anda. Materi ini dirancang khusus untuk ${input.targetAudience}.`;
+      } else if (title.includes("langkah") || title.includes("step") || title.includes("tutorial")) {
+        description = `Ikuti panduan terstruktur yang mudah dipahami. Setiap langkah dijelaskan secara detail sehingga Anda bisa langsung praktik.`;
+      } else if (title.includes("latihan") || title.includes("practice") || title.includes("praktek")) {
+        description = `Asah kemampuan Anda dengan latihan praktis yang relevan. Semakin banyak berlatih, semakin cepat Anda menguasai skill.`;
+      } else {
+        description = `Fitur ${feature} memberikan value signifikan untuk ${input.targetAudience}. Dengan ini, Anda akan lebih mudah mencapai tujuan.`;
+      }
+    } else if (lang === "en") {
+      if (title.includes("basic") || title.includes("fundamental") || title.includes("introduction")) {
+        description = `Learn the essential foundations that will become the basis of your success. Designed specifically for ${input.targetAudience}.`;
+      } else if (title.includes("step") || title.includes("tutorial") || title.includes("guide")) {
+        description = `Follow a structured guide that's easy to understand. Each step is explained in detail so you can practice immediately.`;
+      } else if (title.includes("practice") || title.includes("exercise") || title.includes("hands-on")) {
+        description = `Sharpen your skills with relevant practical exercises. The more you practice, the faster you master the required skills.`;
+      } else {
+        description = `The ${feature} feature provides significant value for ${input.targetAudience}. With this, you'll achieve your goals easier.`;
+      }
+    } else {
+      if (title.includes("asas") || title.includes("basic") || title.includes("fundamental")) {
+        description = `Pelajari asas penting yang akan menjadi dasar kejayaan anda. Direka khas untuk ${input.targetAudience}.`;
+      } else if (title.includes("langkah") || title.includes("step") || title.includes("tutorial")) {
+        description = `Ikuti panduan berstruktur yang mudah difahami. Setiap langkah dijelaskan secara terperinci.`;
+      } else if (title.includes("latihan") || title.includes("practice") || title.includes("praktek")) {
+        description = `Asah kemahiran anda dengan latihan praktikal yang relevan. Semakin banyak berlatih, semakin cepat anda menguasai.`;
+      } else {
+        description = `Ciri ${feature} memberikan nilai penting untuk ${input.targetAudience}. Dengan ini, anda akan lebih mudah mencapai matlamat.`;
+      }
+    }
+
+    return { title: feature, description };
+  });
+
+  return {
+    headline: t.headline(input.productName),
+    subHeadline: t.subHeadline(input.targetAudience),
+    productDescription: t.description(input.productName, input.targetAudience, input.description),
+    benefits: t.benefits,
+    features,
+    socialProof: t.testimonials.map((test) => ({
+      name: test.name,
+      role: test.role,
+      testimonial: typeof test.testimonial === "function" ? test.testimonial(input.productName) : test.testimonial,
+      rating: test.rating,
+    })),
+    pricing: {
+      originalPrice: "",
+      currentPrice: input.price,
+      currency: input.currency,
+      billingPeriod: "one-time",
+      features: t.pricing,
+    },
+    cta: {
+      primaryText: t.cta.primary(input.productName),
+      secondaryText: t.cta.secondary,
+      urgencyText: t.cta.urgency,
+    },
+    faq: t.faq,
+  };
+}
+
+// Main function with fallback system
+export async function generateSalesPage(
+  input: ProductInput,
+  sectionToRegenerate?: keyof GeneratedSalesPage
+): Promise<GeneratedSalesPage> {
+  const prompt = buildPrompt(input, sectionToRegenerate);
+
+  console.log("\n🚀 Starting AI generation with fallback system...");
+  console.log("📊 Fallback order: Gemini Flash → Groq → Demo Mode\n");
+
+  // Priority 1: Try Gemini Flash (FREE 1,500/day)
+  const geminiResult = await tryGemini(prompt);
+  if (geminiResult) {
+    console.log("✅ Generation completed with Gemini Flash\n");
+    return geminiResult;
+  }
+
+  // Priority 2: Try Groq (FREE 14,400/day)
+  const groqResult = await tryGroq(prompt);
+  if (groqResult) {
+    console.log("✅ Generation completed with Groq\n");
+    return groqResult;
+  }
+
+  // Priority 3: Demo Mode (Always works)
+  console.log("⚠️  All AI providers exhausted, using Demo Mode");
+  console.log("💡 Tip: Add GOOGLE_API_KEY or GROQ_API_KEY to .env for free AI generation\n");
+  
+  return generateDemoMode(input);
 }
