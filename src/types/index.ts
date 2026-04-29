@@ -11,6 +11,7 @@ export interface ProductInput {
 }
 
 export interface GeneratedSalesPage {
+  translatedProductName?: string; // Optional for backward compatibility
   headline: string;
   subHeadline: string;
   productDescription: string;

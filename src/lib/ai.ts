@@ -55,14 +55,21 @@ TRANSLATION EXAMPLES:
 - Input: "Hiburan" + Target: English → Output: "Entertainment"
 - Input: "Acara Ultah" + Target: English → Output: "Birthday Party"
 
+IMPORTANT - translatedProductName vs headline:
+- translatedProductName: SHORT, just the product name translated
+  Example: "Kursus Pemrograman Python" → "Python Programming Course" (NOT "Amazing Python Programming Course")
+- headline: FULL compelling headline with power words
+  Example: "Kursus Pemrograman Python" → "Master Python Programming in 30 Days"
+
 🔴 FORBIDDEN:
 - DO NOT keep original language if it differs from target
 - DO NOT mix languages (e.g., "Kue Ultah" in English content)
 - DO NOT use Indonesian words in English output
 - DO NOT use English words in Indonesian output
+- DO NOT make translatedProductName too long or add extra words
 
 ✅ REQUIRED:
-- Translate product name to ${targetLanguage}
+- Translate product name to ${targetLanguage} (keep it SHORT)
 - Translate ALL feature titles to ${targetLanguage}
 - Use natural, native-speaker level ${targetLanguage}
 - Maintain meaning while adapting to cultural context
@@ -71,6 +78,7 @@ ${sectionPrompt}
 
 Respond ONLY with a valid JSON object (no markdown, no backticks) with this exact structure:
 {
+  "translatedProductName": "TRANSLATED product name in ${targetLanguage} (keep it SHORT, just the product name, NOT a full headline)",
   "headline": "Main compelling headline in ${targetLanguage} (max 10 words, power words). TRANSLATE product name if needed.",
   "subHeadline": "Supporting headline in ${targetLanguage} (max 20 words)",
   "productDescription": "Engaging 2-3 sentence product description in ${targetLanguage} focused on transformation. TRANSLATE product name if needed.",
@@ -399,6 +407,7 @@ function generateDemoMode(input: ProductInput): GeneratedSalesPage {
   });
 
   return {
+    translatedProductName: t.headline(input.productName).split(' ').slice(0, 3).join(' '), // Short translated name
     headline: t.headline(input.productName),
     subHeadline: t.subHeadline(input.targetAudience),
     productDescription: t.description(input.productName, input.targetAudience, input.description),
