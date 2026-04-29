@@ -38,23 +38,42 @@ Product Information:
 
 TARGET LANGUAGE: ${targetLanguage}
 
-CRITICAL LANGUAGE INSTRUCTION:
+🚨 CRITICAL LANGUAGE INSTRUCTION - MUST FOLLOW:
 - The user has selected ${targetLanguage} as the output language
-- ALL generated content MUST be in ${targetLanguage}
-- If the input above is in a different language, TRANSLATE it to ${targetLanguage} first, then create the sales page
-- Example: If input is in Indonesian but target is English, translate all content to English
-- Example: If input is in English but target is Indonesian, translate all content to Indonesian
-- Example: If input is in Indonesian but target is Malay, translate all content to Malay
-- Maintain the meaning and intent while adapting to the target language's cultural context
-- Use natural, native-speaker level language for ${targetLanguage}
+- **EVERYTHING** must be in ${targetLanguage} - NO EXCEPTIONS
+- **TRANSLATE ALL INPUT** to ${targetLanguage} before generating content:
+  ✓ Product name → Translate to ${targetLanguage}
+  ✓ Feature titles → Translate to ${targetLanguage}
+  ✓ Description → Translate to ${targetLanguage}
+  ✓ Target audience → Translate to ${targetLanguage}
+  ✓ ALL text content → Translate to ${targetLanguage}
+
+TRANSLATION EXAMPLES:
+- Input: "Kursus Menggambar Digital" + Target: English → Output: "Digital Drawing Course"
+- Input: "Digital Drawing Course" + Target: Indonesian → Output: "Kursus Menggambar Digital"
+- Input: "Kue Ultah" + Target: English → Output: "Birthday Cake"
+- Input: "Hiburan" + Target: English → Output: "Entertainment"
+- Input: "Acara Ultah" + Target: English → Output: "Birthday Party"
+
+🔴 FORBIDDEN:
+- DO NOT keep original language if it differs from target
+- DO NOT mix languages (e.g., "Kue Ultah" in English content)
+- DO NOT use Indonesian words in English output
+- DO NOT use English words in Indonesian output
+
+✅ REQUIRED:
+- Translate product name to ${targetLanguage}
+- Translate ALL feature titles to ${targetLanguage}
+- Use natural, native-speaker level ${targetLanguage}
+- Maintain meaning while adapting to cultural context
 
 ${sectionPrompt}
 
 Respond ONLY with a valid JSON object (no markdown, no backticks) with this exact structure:
 {
-  "headline": "Main compelling headline (max 10 words, power words)",
-  "subHeadline": "Supporting headline that elaborates (max 20 words)",
-  "productDescription": "Engaging 2-3 sentence product description focused on transformation",
+  "headline": "Main compelling headline in ${targetLanguage} (max 10 words, power words). TRANSLATE product name if needed.",
+  "subHeadline": "Supporting headline in ${targetLanguage} (max 20 words)",
+  "productDescription": "Engaging 2-3 sentence product description in ${targetLanguage} focused on transformation. TRANSLATE product name if needed.",
   "benefits": [
     {
       "icon": "emoji icon",
@@ -64,8 +83,8 @@ Respond ONLY with a valid JSON object (no markdown, no backticks) with this exac
   ],
   "features": [
     {
-      "title": "Feature name from the list above",
-      "description": "IMPORTANT: Create a SPECIFIC and UNIQUE description for each feature based on its title. Analyze the feature name and write a compelling 1-2 sentence description that explains what this specific feature does and why it matters for ${input.targetAudience}. DO NOT use generic descriptions. Each feature must have a different, contextual description."
+      "title": "TRANSLATED feature name in ${targetLanguage} (NOT original input language)",
+      "description": "IMPORTANT: Create a SPECIFIC and UNIQUE description in ${targetLanguage} for each feature based on its TRANSLATED title. Analyze the feature name and write a compelling 1-2 sentence description that explains what this specific feature does and why it matters for ${input.targetAudience}. DO NOT use generic descriptions. Each feature must have a different, contextual description in ${targetLanguage}."
     }
   ],
   "socialProof": [
@@ -97,31 +116,44 @@ Respond ONLY with a valid JSON object (no markdown, no backticks) with this exac
 }
 
 CRITICAL REQUIREMENTS FOR FEATURES:
-1. Use the EXACT feature titles from the list: ${input.features.join(", ")}
-2. For EACH feature, analyze its title and create a SPECIFIC description:
-   - If feature is about "basics" or "fundamentals" → explain foundational learning
-   - If feature is about "step-by-step" or "tutorial" → explain structured guidance
-   - If feature is about "practice" or "exercise" → explain hands-on learning
-   - If feature is about "advanced" or "expert" → explain advanced techniques
-   - If feature is about "project" or "real-world" → explain practical application
-   - If feature is about "support" or "help" → explain assistance available
-   - If feature is about "certificate" or "credential" → explain certification value
-   - If feature is about "community" or "network" → explain networking benefits
-   - If feature is about "lifetime" or "unlimited" → explain access benefits
-   - If feature is about "video" or "visual" → explain multimedia content
-3. Each description MUST be different and contextual to its feature title
-4. Make descriptions persuasive and benefit-focused
-5. Tailor language to ${input.targetAudience}
+1. **TRANSLATE feature titles to ${targetLanguage}** - DO NOT keep original language
+   Example: "Kue Ultah" → "Birthday Cake" (if English)
+   Example: "Birthday Cake" → "Kue Ulang Tahun" (if Indonesian)
+2. Use the TRANSLATED feature titles in your response
+3. For EACH feature, analyze its TRANSLATED title and create a SPECIFIC description in ${targetLanguage}:
+   - If feature is about "basics" or "fundamentals" or "dasar" → explain foundational learning
+   - If feature is about "step-by-step" or "tutorial" or "langkah" → explain structured guidance
+   - If feature is about "practice" or "exercise" or "latihan" → explain hands-on learning
+   - If feature is about "advanced" or "expert" or "lanjutan" → explain advanced techniques
+   - If feature is about "project" or "real-world" or "proyek" → explain practical application
+   - If feature is about "support" or "help" or "dukungan" → explain assistance available
+   - If feature is about "certificate" or "credential" or "sertifikat" → explain certification value
+   - If feature is about "community" or "network" or "komunitas" → explain networking benefits
+   - If feature is about "lifetime" or "unlimited" or "selamanya" → explain access benefits
+   - If feature is about "video" or "visual" or "video" → explain multimedia content
+   - If feature is about "cake" or "kue" → explain cake/dessert customization
+   - If feature is about "entertainment" or "hiburan" → explain entertainment options
+   - If feature is about "party" or "acara" or "pesta" → explain party planning
+4. Each description MUST be different and contextual to its TRANSLATED feature title
+5. Make descriptions persuasive and benefit-focused in ${targetLanguage}
+6. Tailor language to ${input.targetAudience} in ${targetLanguage}
 
 General Requirements:
-- Make it persuasive and conversion-focused
-- Use power words and emotional triggers
-- Tailor everything to the target audience: ${input.targetAudience}
-- Generate 4 benefits, ${input.features.length} features (one for each provided), 3 testimonials, 4 FAQ items
-- ALL content MUST be in ${targetLanguage} - this is CRITICAL
-- If input is in different language, translate to ${targetLanguage} while maintaining persuasive tone
+- Make it persuasive and conversion-focused in ${targetLanguage}
+- Use power words and emotional triggers appropriate for ${targetLanguage}
+- Tailor everything to the target audience: ${input.targetAudience} (translate if needed)
+- Generate 4 benefits, ${input.features.length} features (one for each provided - TRANSLATED), 3 testimonials, 4 FAQ items
+- **ALL content MUST be in ${targetLanguage}** - this is CRITICAL
+- **TRANSLATE all input data** (product name, features, audience) to ${targetLanguage} before using
 - Use culturally appropriate references and idioms for ${targetLanguage}
-- Pricing should reflect: ${input.price} ${input.currency}`;
+- Pricing should reflect: ${input.price} ${input.currency}
+
+🔴 FINAL CHECK BEFORE RESPONDING:
+- [ ] Product name translated to ${targetLanguage}?
+- [ ] ALL feature titles translated to ${targetLanguage}?
+- [ ] ALL descriptions in ${targetLanguage}?
+- [ ] NO mixed language content?
+- [ ] Natural native-speaker level ${targetLanguage}?`;
 }
 
 // Helper function to parse AI response
