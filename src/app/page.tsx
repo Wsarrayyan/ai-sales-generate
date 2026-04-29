@@ -140,7 +140,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t border-dark-700 py-8">
         <div className="page-container text-center text-white/30 text-sm">
-          <p>© {new Date().getFullYear()} SalesForge AI. Built for PT Dakwah Digital.</p>
+          <p>© {new Date().getFullYear()} SalesForge AI. Built for PT Dakwah Digital Network.</p>
         </div>
       </footer>
     </div>
