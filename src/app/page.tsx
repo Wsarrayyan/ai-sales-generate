@@ -17,7 +17,7 @@ export default function HomePage() {
         <div className="page-container relative text-center">
           <div className="inline-flex items-center gap-2 bg-brand-500/10 border border-brand-500/30 text-brand-400 text-sm font-medium px-4 py-1.5 rounded-full mb-8 animate-fade-in">
             <FiZap className="w-3.5 h-3.5" />
-            Powered by Claude AI
+            Powered by AI
           </div>
 
           <h1 className="text-5xl md:text-7xl font-display font-black leading-tight mb-6 animate-slide-up text-balance">

@@ -403,7 +403,7 @@ export async function POST(req: NextRequest) {
         
         // Add warning to the response
         return NextResponse.json({
-          warning: "⚠️ DEMO MODE: AI credit habis. Menggunakan template demo. Silakan top up credit Anthropic untuk hasil AI yang sesungguhnya.",
+          warning: "⚠️ DEMO MODE: AI credit habis. Menggunakan template demo. Silakan tambahkan GOOGLE_API_KEY atau GROQ_API_KEY untuk hasil AI yang sesungguhnya.",
           page: pageId ? await updatePage() : await createPage(),
           generatedContent,
           isDemoMode: true,

@@ -52,14 +52,27 @@ NEXTAUTH_SECRET="hasil-dari-command-di-atas"
 NEXTAUTH_URL="http://localhost:3000"
 ```
 
-#### C. Anthropic API Key
-1. Buka [console.anthropic.com](https://console.anthropic.com)
-2. Login/Register
-3. Buat API Key baru
+#### C. AI API Keys (FREE!)
+
+**Option 1: Google Gemini (Recommended)**
+1. Buka [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
+2. Login dengan Google Account
+3. Klik "Create API Key"
 4. Copy ke .env:
 ```env
-ANTHROPIC_API_KEY="sk-ant-xxxxxxxxxxxx"
+GOOGLE_API_KEY="AIzaSy..."
 ```
+
+**Option 2: Groq (Alternative)**
+1. Buka [console.groq.com](https://console.groq.com)
+2. Sign up & verify email
+3. Create API Key
+4. Copy ke .env:
+```env
+GROQ_API_KEY="gsk_..."
+```
+
+**Note:** Setup minimal 1 API key. Untuk best experience, setup keduanya!
 
 ### 3. Setup Database (1 menit)
 ```bash

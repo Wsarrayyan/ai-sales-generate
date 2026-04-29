@@ -14,7 +14,7 @@ ls .env
 # - DIRECT_URL (Direct URL tanpa -pooler)
 # - NEXTAUTH_SECRET
 # - NEXTAUTH_URL
-# - ANTHROPIC_API_KEY
+# - GOOGLE_API_KEY (or GROQ_API_KEY)
 ```
 
 **Verifikasi:**
@@ -23,7 +23,7 @@ ls .env
 - [ ] `DATABASE_URL` mengandung `pgbouncer=true`
 - [ ] `DIRECT_URL` TIDAK mengandung `-pooler`
 - [ ] `NEXTAUTH_SECRET` terisi (minimal 32 karakter)
-- [ ] `ANTHROPIC_API_KEY` dimulai dengan `sk-ant-`
+- [ ] `GOOGLE_API_KEY` atau `GROQ_API_KEY` terisi (minimal 1)
 
 ### 2. ✅ Database Connection
 ```bash

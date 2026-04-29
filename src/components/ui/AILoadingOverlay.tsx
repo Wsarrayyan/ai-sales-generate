@@ -182,7 +182,7 @@ export function AILoadingOverlay({ isOpen, stage = "analyzing" }: Props) {
 
         {/* Powered by */}
         <div className="text-center mt-4 text-xs text-white/30">
-          Powered by Claude Opus 4.5 AI
+          Powered by Advanced AI
         </div>
       </div>
     </div>

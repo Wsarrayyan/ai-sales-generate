@@ -10,11 +10,11 @@
 
 ## 📋 Overview
 
-**SalesForge AI** adalah aplikasi web yang menggunakan AI (Claude Opus 4.5) untuk membuat sales page yang profesional, persuasif, dan conversion-optimized dalam hitungan detik. Cukup input informasi produk Anda, pilih template dan bahasa, lalu biarkan AI membuat sales page yang sempurna!
+**SalesForge AI** adalah aplikasi web yang menggunakan AI (Google Gemini & Groq) untuk membuat sales page yang profesional, persuasif, dan conversion-optimized dalam hitungan detik. Cukup input informasi produk Anda, pilih template dan bahasa, lalu biarkan AI membuat sales page yang sempurna!
 
 ### ✨ Key Features
 
-- 🤖 **AI-Powered Generation** - Menggunakan Claude Opus 4.5 untuk copywriting berkualitas tinggi
+- 🤖 **AI-Powered Generation** - Menggunakan Gemini 2.0 Flash & Groq untuk copywriting berkualitas tinggi
 - 🌍 **Multi-Language Support** - Indonesia, English, Melayu dengan auto-translation
 - 🎨 **4 Premium Templates** - Modern, Bold, Minimal, Luxury
 - 📝 **Smart Feature Descriptions** - AI membuat deskripsi spesifik untuk setiap fitur
@@ -60,7 +60,8 @@
 - **NextAuth.js** - Authentication solution
 
 ### AI & Services
-- **Anthropic Claude Opus 4.5** - AI copywriting
+- **Google Gemini 2.0 Flash** - Primary AI (FREE 1,500/day)
+- **Groq (Llama 3.3 70B)** - Fallback AI (FREE 14,400/day)
 - **Neon Tech** - Serverless PostgreSQL
 - **Vercel** - Deployment platform
 
@@ -73,7 +74,7 @@
 - Node.js 18+ 
 - npm or yarn
 - PostgreSQL database (recommend Neon Tech)
-- Anthropic API key
+- Google Gemini API key (FREE) or Groq API key (FREE)
 
 ### Installation
 
@@ -103,8 +104,9 @@
    NEXTAUTH_SECRET="generate-with: openssl rand -base64 32"
    NEXTAUTH_URL="http://localhost:3000"
 
-   # Anthropic API
-   ANTHROPIC_API_KEY="sk-ant-xxxx"
+   # AI Providers (Fallback System)
+   GOOGLE_API_KEY="your-google-api-key"  # Priority 1 (FREE 1,500/day)
+   GROQ_API_KEY="your-groq-api-key"      # Priority 2 (FREE 14,400/day)
    ```
 
 4. **Setup database**
@@ -134,7 +136,7 @@ Comprehensive documentation available in the `/docs` folder:
 - **[MULTI_LANGUAGE_FEATURE.md](./MULTI_LANGUAGE_FEATURE.md)** - Multi-language & auto-translation
 - **[AI_VS_TEMPLATE_FEATURES.md](./AI_VS_TEMPLATE_FEATURES.md)** - AI vs Template mode comparison
 - **[LOADING_STATES_FEATURE.md](./LOADING_STATES_FEATURE.md)** - Advanced loading states
-- **[ANTHROPIC_CREDIT_ISSUE.md](./ANTHROPIC_CREDIT_ISSUE.md)** - API credit management
+- **[AI_SETUP_GUIDE.md](./AI_SETUP_GUIDE.md)** - Setup Gemini & Groq API keys (FREE)
 - **[CHECKLIST.md](./CHECKLIST.md)** - Troubleshooting guide
 - **[DOCS_INDEX.md](./DOCS_INDEX.md)** - Complete documentation index
 
@@ -185,16 +187,23 @@ No API credit? No problem! Automatic fallback to template-based generation.
 
 ## 💰 Pricing & Cost
 
-### Anthropic API Cost
-- **Per Sales Page:** ~$0.15 - $0.20
-- **$10 Credit:** ~50-60 sales pages
-- **$20 Credit:** ~100-120 sales pages
+### AI API Cost (FREE Tier Available!)
 
-### Free Tier (DEMO Mode)
+**Google Gemini 2.0 Flash:**
+- **FREE:** 1,500 requests/day (reset daily)
+- **Paid:** $0.075 per 1M tokens (200x cheaper!)
+
+**Groq (Llama 3.3 70B):**
+- **FREE:** 14,400 requests/day (reset daily)
+- **Paid:** $0.59 per 1M tokens
+
+**Total FREE:** 15,900 generations/day! 🎉
+
+### Demo Mode (Always Available)
 - Unlimited generations
-- Template-based descriptions
+- Template-based content
 - All features available
-- No API credit needed
+- No API key needed
 
 ---
 
@@ -212,12 +221,20 @@ DATABASE_URL="postgresql://...@host-pooler...?pgbouncer=true"
 DIRECT_URL="postgresql://...@host..."
 ```
 
-### Anthropic API
+### Google Gemini API
 
-Get API key from [Anthropic Console](https://console.anthropic.com):
+Get FREE API key from [Google AI Studio](https://aistudio.google.com/app/apikey):
 
 ```env
-ANTHROPIC_API_KEY="sk-ant-api03-..."
+GOOGLE_API_KEY="AIzaSy..."
+```
+
+### Groq API
+
+Get FREE API key from [Groq Console](https://console.groq.com/keys):
+
+```env
+GROQ_API_KEY="gsk_..."
 ```
 
 ### NextAuth
@@ -296,7 +313,8 @@ npm run build
    DIRECT_URL
    NEXTAUTH_SECRET
    NEXTAUTH_URL (your-domain.vercel.app)
-   ANTHROPIC_API_KEY
+   GOOGLE_API_KEY (optional but recommended)
+   GROQ_API_KEY (optional but recommended)
    ```
 
 4. **Deploy!**
@@ -333,7 +351,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- **Anthropic** - For the amazing Claude AI
+- **Google** - For Gemini 2.0 Flash AI
+- **Groq** - For fast Llama inference
 - **Neon Tech** - For serverless PostgreSQL
 - **Vercel** - For hosting platform
 - **Next.js Team** - For the awesome framework
@@ -370,4 +389,4 @@ If you find this project useful, please consider giving it a star!
 
 **Made with ❤️ by [Wsarrayyan](https://github.com/Wsarrayyan)**
 
-**Powered by Claude Opus 4.5 AI** 🤖
+**Powered by Google Gemini & Groq AI** 🤖
