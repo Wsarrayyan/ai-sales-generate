@@ -107,7 +107,8 @@ export function SalesPagePreview({ content, productName, template, price, curren
       <section className={`relative py-20 px-6 text-center bg-gradient-to-b ${t.hero}`}>
         <div className="max-w-4xl mx-auto">
           <div className={`inline-block text-xs font-bold uppercase tracking-widest mb-4 px-3 py-1 rounded-full border ${t.accentBorder} ${t.accent}`}>
-            {productName}
+            {/* Use first 3-4 words from headline as badge (AI-translated) */}
+            {content.headline.split(' ').slice(0, 4).join(' ')}
           </div>
           <h1 className="text-4xl md:text-6xl font-display font-black leading-tight mb-6">
             {content.headline}
@@ -267,7 +268,7 @@ export function SalesPagePreview({ content, productName, template, price, curren
       </section>
 
       <footer className={`py-8 text-center text-xs ${subtext} border-t border-white/5`}>
-        <p>© {new Date().getFullYear()} {productName}. {text.footerText}.</p>
+        <p>© {new Date().getFullYear()} {text.footerText}.</p>
       </footer>
     </div>
   );
